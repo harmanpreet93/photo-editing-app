@@ -12,27 +12,31 @@ public class WebService {
     //Namespace of the Webservice - can be found in WSDL
     private static String NAMESPACE = "http://soap_service.harman/";
     //Webservice URL - WSDL File location
-    private static String URL = "http://192.168.1.100:4848/HelloWorldWebService/SayHelloService?WSDL";
+    private static String URL = "http://192.168.0.104:4848/HelloWorldWebService/SayHelloService?WSDL";
     //SOAP Action URI again Namespace + Web method name
-    private static String SOAP_ACTION = "http://example.prgguru.com/";
+    private static String SOAP_ACTION = "http://soap_service.harman/";
 
-    public static String invokeWebService(String name, String webMethName) {
+    private static String METHOD_NAME = "processImage";
+
+    public static String invokeWebService(String effect, byte[] byteArray) {
         String resTxt = null;
         // Create request
-        SoapObject request = new SoapObject(NAMESPACE, webMethName);
+        SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
         // Property which holds input parameters
-        PropertyInfo sayHelloPI = new PropertyInfo();
+        PropertyInfo setEffectParam = new PropertyInfo();
         // Set Name
-        sayHelloPI.setName("name");
+        setEffectParam.setName("effect");
         // Set Value
-        sayHelloPI.setValue(name);
+        setEffectParam.setValue(effect);
+
+        request.addProperty("byteArray",byteArray);
+
         // Set dataType
-        sayHelloPI.setType(String.class);
+        setEffectParam.setType(String.class);
         // Add the property to request object
-        request.addProperty(sayHelloPI);
+        request.addProperty(setEffectParam);
         // Create envelope
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
         // Set output SOAP object
         envelope.setOutputSoapObject(request);
         // Create HTTP call object
@@ -40,7 +44,7 @@ public class WebService {
 
         try {
             // Invoke web service
-            androidHttpTransport.call(SOAP_ACTION+webMethName, envelope);
+            androidHttpTransport.call(SOAP_ACTION+METHOD_NAME, envelope);
             // Get the response
             SoapPrimitive response = (SoapPrimitive) envelope.getResponse();
             // Assign it to resTxt variable static variable

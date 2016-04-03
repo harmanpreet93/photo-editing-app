@@ -2,10 +2,20 @@ package harman.myinstaapp;
 
 import android.os.AsyncTask;
 
-public class AsyncCallWS extends AsyncTask<String, Void, Void> {
+public class AsyncCallWS extends AsyncTask<Void, Void, Void> {
+
+    private String effect;
+    private byte[] byteArray;
+
+
+    public AsyncCallWS(String effect,byte[] byteArray) {
+        this.effect = effect;
+        this.byteArray = byteArray;
+    }
     @Override
-    protected Void doInBackground(String... params) {
+    protected Void doInBackground(Void... params) {
         //Invoke webservice
+        WebService.invokeWebService(effect,byteArray);
 //        displayText = WebService.invokeWebService(editText, "hello");
 
         return null;
@@ -24,6 +34,7 @@ public class AsyncCallWS extends AsyncTask<String, Void, Void> {
 
     @Override
     protected void onProgressUpdate(Void... values) {
+
     }
 
 }
