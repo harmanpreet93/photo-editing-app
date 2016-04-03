@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -26,10 +28,7 @@ import java.util.Date;
 public class MainCameraActivity extends AppCompatActivity implements
         View.OnClickListener{
 
-    private static final String BITMAP_STORAGE_KEY = "viewbitmap";
-    private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY = "imageviewvisibility";
-
-    private FloatingActionButton fabCamera, fabGallery, fabCrop;
+    private FloatingActionButton fabCamera, fabGallery, fabCrop, fabEdit;
 
     static final int REQUEST_CLICK_IMG = 1;
     static final int RESULT_LOAD_IMG = 2;
@@ -58,9 +57,12 @@ public class MainCameraActivity extends AppCompatActivity implements
         fabCamera = (FloatingActionButton)findViewById(R.id.fab_camera);
         fabGallery = (FloatingActionButton)findViewById(R.id.fab_gallery);
         fabCrop = (FloatingActionButton)findViewById(R.id.fab_crop);
+        fabEdit = (FloatingActionButton)findViewById(R.id.fab_edit);
+
         fabCamera.setOnClickListener(this);
         fabGallery.setOnClickListener(this);
         fabCrop.setOnClickListener(this);
+        fabEdit.setOnClickListener(this);
         editingImage = (ImageView)findViewById(R.id.editing_image);
     }
 
@@ -81,6 +83,22 @@ public class MainCameraActivity extends AppCompatActivity implements
                     File f = new File(imgDecodableString);
                     Uri picUri = Uri.fromFile(f);
                     performCrop(picUri);
+                }
+                else {
+                    new AlertDialog.Builder(MainCameraActivity.this)
+                            .setMessage("No image found")
+                            .setCancelable(false)
+                            .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            }).show();
+                }
+                break;
+            case R.id.fab_edit:
+                if (imgDecodableString != null) {
+                    openNewActivity(AfterCropActivity.class);
                 }
                 else {
                     new AlertDialog.Builder(MainCameraActivity.this)
@@ -309,6 +327,13 @@ public class MainCameraActivity extends AppCompatActivity implements
                     }).show();
 
         }
+    }
+
+    private void openNewActivity(Class activity) {
+        Log.d(TAG,"opening new activity");
+        Intent intent = new Intent(MainCameraActivity.this,activity);
+        intent.putExtra("image_path", imgDecodableString);
+        startActivity(intent);
     }
 
 }

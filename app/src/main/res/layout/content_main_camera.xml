@@ -48,7 +48,6 @@
             android:layout_margin="12dp"
             android:src="@drawable/ic_photo_camera_white_24dp"
             android:visibility="visible"
-            app:backgroundTint="@color/colorFAB1"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp" />
 
@@ -58,6 +57,16 @@
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:src="@drawable/ic_crop_white_24dp"
+            android:visibility="visible"
+            app:elevation="6dp"
+            app:pressedTranslationZ="12dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:src="@drawable/ic_format_color_fill_white_24dp"
             android:visibility="visible"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp" />
