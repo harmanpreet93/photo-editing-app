@@ -3,6 +3,7 @@ package harman.myinstaapp;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -30,6 +31,7 @@ public class MainCameraActivity extends AppCompatActivity implements
     private FloatingActionButton fabCamera, fabGallery;
 
     static final int REQUEST_TAKE_PHOTO = 1;
+    static final int RESULT_LOAD_IMG = 2;
     private ImageView editingImage;
 
     private String mCurrentPhotoPath;
@@ -68,14 +70,22 @@ public class MainCameraActivity extends AppCompatActivity implements
                 break;
             case R.id.fab_gallery:
                 Log.d(TAG, "Fab Gallery");
+                openGallery();
                 break;
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            handleCameraPhoto();
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_TAKE_PHOTO:
+                    handleCameraPhoto();
+                    break;
+                case RESULT_LOAD_IMG:
+                    handleGalleryPhoto(data);
+                    break;
+            }
         }
     }
 
@@ -95,7 +105,6 @@ public class MainCameraActivity extends AppCompatActivity implements
                 Log.d(TAG,"Error: " + ex.toString());
                 // Error occurred while creating the File
                 new AlertDialog.Builder(MainCameraActivity.this)
-                        .setTitle("Error")
                         .setMessage("Couldn't create image")
                         .setCancelable(false)
                         .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
@@ -113,6 +122,14 @@ public class MainCameraActivity extends AppCompatActivity implements
             }
         }
 
+    }
+
+    private void openGallery() {
+        // Create intent to Open Image applications like Gallery, Google Photos
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // Start the Intent
+        startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
     }
 
     private File createImageFile() throws IOException {
@@ -202,5 +219,24 @@ public class MainCameraActivity extends AppCompatActivity implements
         }
 
         return storageDir;
+    }
+
+    private void handleGalleryPhoto(Intent data) {
+        Uri selectedImage = data.getData();
+        String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+        // Get the cursor
+        Cursor cursor = getContentResolver().query(selectedImage,
+                filePathColumn, null, null, null);
+        // Move to first row
+        cursor.moveToFirst();
+
+        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+        String imgDecodableString = cursor.getString(columnIndex);
+        cursor.close();
+        // Set the Image in ImageView after decoding the String
+        editingImage.setImageBitmap(BitmapFactory
+                .decodeFile(imgDecodableString));
+
     }
 }
