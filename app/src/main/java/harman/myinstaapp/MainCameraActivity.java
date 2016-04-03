@@ -1,6 +1,7 @@
 package harman.myinstaapp;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -28,19 +29,20 @@ public class MainCameraActivity extends AppCompatActivity implements
     private static final String BITMAP_STORAGE_KEY = "viewbitmap";
     private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY = "imageviewvisibility";
 
-    private FloatingActionButton fabCamera, fabGallery;
+    private FloatingActionButton fabCamera, fabGallery, fabCrop;
 
-    static final int REQUEST_TAKE_PHOTO = 1;
+    static final int REQUEST_CLICK_IMG = 1;
     static final int RESULT_LOAD_IMG = 2;
+    final int RESULT_CROP_IMG = 3;
+
     private ImageView editingImage;
 
     private String mCurrentPhotoPath;
-
+    private String imgDecodableString;
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
 
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
-
 
     private String TAG = "MYINSTAAPP";
 
@@ -55,8 +57,10 @@ public class MainCameraActivity extends AppCompatActivity implements
 
         fabCamera = (FloatingActionButton)findViewById(R.id.fab_camera);
         fabGallery = (FloatingActionButton)findViewById(R.id.fab_gallery);
+        fabCrop = (FloatingActionButton)findViewById(R.id.fab_crop);
         fabCamera.setOnClickListener(this);
         fabGallery.setOnClickListener(this);
+        fabCrop.setOnClickListener(this);
         editingImage = (ImageView)findViewById(R.id.editing_image);
     }
 
@@ -72,6 +76,24 @@ public class MainCameraActivity extends AppCompatActivity implements
                 Log.d(TAG, "Fab Gallery");
                 openGallery();
                 break;
+            case R.id.fab_crop:
+                if (imgDecodableString != null) {
+                    File f = new File(imgDecodableString);
+                    Uri picUri = Uri.fromFile(f);
+                    performCrop(picUri);
+                }
+                else {
+                    new AlertDialog.Builder(MainCameraActivity.this)
+                            .setMessage("No image found")
+                            .setCancelable(false)
+                            .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            }).show();
+                }
+                break;
         }
     }
 
@@ -79,12 +101,25 @@ public class MainCameraActivity extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case REQUEST_TAKE_PHOTO:
+                case REQUEST_CLICK_IMG:
                     handleCameraPhoto();
                     break;
                 case RESULT_LOAD_IMG:
                     handleGalleryPhoto(data);
                     break;
+                case RESULT_CROP_IMG:
+                    //get the returned data
+                    Bundle extras = data.getExtras();
+                    if(extras != null) {
+                        //get the cropped bitmap
+                        Bitmap thePic = extras.getParcelable("data");
+                        //display the returned cropped image
+                        editingImage.setImageBitmap(thePic);
+                    }
+                    else {
+                        Bitmap bitmap = BitmapFactory.decodeFile(imgDecodableString);
+                        editingImage.setImageBitmap(bitmap);
+                    }
             }
         }
     }
@@ -107,7 +142,7 @@ public class MainCameraActivity extends AppCompatActivity implements
                 new AlertDialog.Builder(MainCameraActivity.this)
                         .setMessage("Couldn't create image")
                         .setCancelable(false)
-                        .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
@@ -118,7 +153,7 @@ public class MainCameraActivity extends AppCompatActivity implements
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                startActivityForResult(takePictureIntent, REQUEST_CLICK_IMG);
             }
         }
 
@@ -154,6 +189,7 @@ public class MainCameraActivity extends AppCompatActivity implements
         if (mCurrentPhotoPath != null) {
             setPic();
             galleryAddPic();
+            imgDecodableString = mCurrentPhotoPath;
             mCurrentPhotoPath = null;
         }
 
@@ -232,11 +268,47 @@ public class MainCameraActivity extends AppCompatActivity implements
         cursor.moveToFirst();
 
         int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-        String imgDecodableString = cursor.getString(columnIndex);
+        imgDecodableString = cursor.getString(columnIndex);
         cursor.close();
         // Set the Image in ImageView after decoding the String
         editingImage.setImageBitmap(BitmapFactory
                 .decodeFile(imgDecodableString));
-
     }
+
+    private void performCrop(Uri picUri) {
+
+        try {
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(picUri, "image/*");
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            //indicate output X and Y
+            cropIntent.putExtra("outputX", 256);
+            cropIntent.putExtra("outputY", 256);
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, RESULT_CROP_IMG);
+
+        }
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            new AlertDialog.Builder(MainCameraActivity.this)
+                    .setMessage("Device doesn't support crop action")
+                    .setCancelable(false)
+                    .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    }).show();
+
+        }
+    }
+
 }

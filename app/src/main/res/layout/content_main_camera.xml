@@ -14,16 +14,17 @@
 
     <ImageView
         android:id="@+id/editing_image"
-        android:layout_weight="4.9"
+        android:layout_weight="4.95"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="#e2e2e2"
         android:src="@drawable/placeholder"
+        android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:elevation="2dp"/>
 
     <LinearLayout
-        android:layout_weight="0.1"
+        android:layout_weight="0.05"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
@@ -33,7 +34,7 @@
             android:id="@+id/fab_gallery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="12dp"
             android:layout_marginEnd="@dimen/fab_margin"
             android:layout_marginRight="@dimen/fab_margin"
             android:src="@drawable/ic_photo_library_white_24dp"
@@ -44,10 +45,20 @@
             android:id="@+id/fab_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="12dp"
             android:src="@drawable/ic_photo_camera_white_24dp"
             android:visibility="visible"
             app:backgroundTint="@color/colorFAB1"
+            app:elevation="6dp"
+            app:pressedTranslationZ="12dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:src="@drawable/ic_crop_white_24dp"
+            android:visibility="visible"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp" />
 

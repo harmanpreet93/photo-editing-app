@@ -6,6 +6,7 @@
 
     <color name="colorFAB1">#303F9F</color>
     <color name="colorFAB2">#E040FB</color>
+    <color name="colorFAB3">#FF4081</color>
 
     <!--<color name="colorAccent">#FF4081</color>-->
 </resources>
